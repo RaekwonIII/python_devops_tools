@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.python.org/pypi"
+
+[requires]
+python_version = "3"
+
+[packages]
+azure-batch = "*"
+azure-keyvault = "*"
+azure-storage-blob = "*"
+azure-storage-common = "*"
+pydocumentdb = "*"
+pyyaml = "*"
+setuptools = "*"
+python-gitlab = "*"
+bump2version = "*"
+
+[dev-packages]
+coverage = "*"
