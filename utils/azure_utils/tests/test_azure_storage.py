@@ -247,16 +247,14 @@ class AzureStorageTest(TestCase):
         exists = self.azure_storage.blob_exists(BERGAMOT_CONTAINER_NAME, BLOB_NAME, file_size)
         self.assertEqual(exists, False)
 
-    @patch('utils.azure_utils.azure_storage.show_progress')
     @patch('os.path.exists')
     @patch('os.path.getsize')
     @patch('os.walk')
     @patch('builtins.open', new_callable=mock_open)
-    def test_upload_directory(self, mocked_open, mock_walk, mock_size, mock_exists, mock_progress):
+    def test_upload_directory(self, mocked_open, mock_walk, mock_size, mock_exists):
         mock_walk.return_value = [('directory', [], ['a.txt', 'b.txt', 'c.csv'])]
         mock_size.return_value = 10
         mock_exists.return_value = True
-        mock_progress.return_value = True
         file_mock = StringIO(FILE_A["file_content"])
         mocked_open.return_value = file_mock
         files_uploaded = self.azure_storage.upload_directory("dir")
