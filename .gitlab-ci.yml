@@ -1,0 +1,36 @@
+stages:
+  - test
+  - bump_and_tag
+  - publish
+
+test:
+  stage: test
+  image: python:3.5
+  script:
+    - pip install pipenv
+    - pipenv install --dev
+    - pipenv run coverage run -m unittest discover
+    - pipenv run coverage report
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+
+bump_and_tag:
+  stage: bump_and_tag
+  image: python:3.5
+  only:
+    - master
+  script:
+    - pip install pipenv
+    - pipenv install --dev
+    - pipenv run ./utils/common/bump_version.py
+
+push:pypi:
+  stage: publish
+  image: python:3.5
+  only:
+    - tags
+  script:
+    - pip install pipenv
+    - pipenv install
+    - pipenv run python setup.py sdist bdist bdist_wheel
+    # Upload to artifactory to the $ARTIFACTORY_PYPI_PUSH_REPOSITORY repository:
+    - twine upload -r arti dist/*
