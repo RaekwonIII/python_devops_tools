@@ -114,7 +114,7 @@ def tag_repo():
 
 
 def main():
-
+    print(os.environ)
     if verify_env_var_presence("TRAVIS"):
         print("RUNNING ON TRAVIS, BUMP DISABLED FOR NOW")
         return 0
