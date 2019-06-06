@@ -114,18 +114,20 @@ def tag_repo():
 
 
 def main():
-    print(os.environ)
-    if verify_env_var_presence("TRAVIS"):
+    print('Searching for TRAVIS env variable')
+    print(os.getenv('TRAVIS'))
+    if os.getenv('TRAVIS') == 'true':
         print("RUNNING ON TRAVIS, BUMP DISABLED FOR NOW")
         return 0
+    else:
+        print('PIPELINE NOT RUNNING ON TRAVIS')
+        env_list = ["CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "NPA_USERNAME",
+                    "NPA_PASSWORD"]
+        [verify_env_var_presence(e) for e in env_list]
 
-    env_list = ["CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "NPA_USERNAME",
-                "NPA_PASSWORD"]
-    [verify_env_var_presence(e) for e in env_list]
+        tag_repo()
 
-    tag_repo()
-
-    return 0
+        return 0
 
 
 if __name__ == "__main__":
