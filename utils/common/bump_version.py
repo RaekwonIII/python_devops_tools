@@ -97,6 +97,10 @@ def tag_repo(travis_ci=True):
     email = TRAVIS_EMAIL
     name = TRAVIS_EMAIL
     if not travis_ci:
+        env_list = ["CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "NPA_USERNAME",
+                    "NPA_PASSWORD"]
+        [verify_env_var_presence(e) for e in env_list]
+
         repository_url = os.environ["CI_REPOSITORY_URL"]
         username = os.environ["NPA_USERNAME"]
         password = os.environ["NPA_PASSWORD"]
@@ -116,20 +120,14 @@ def tag_repo(travis_ci=True):
     print("Creating tag number", tag)
     # create a tag from new version and push it
     git("tag", tag, '-a', '-m', COMMIT_MESSAGE.format(tag))
-    git("push", "origin", "$TRAVIS_BRANCH", "2>&1")
-    git("push", "origin", "$TRAVIS_BRANCH", "--tags", "2>&1")
+    # git("push", "origin", "$TRAVIS_BRANCH", "2>&1")
+    # git("push", "origin", "$TRAVIS_BRANCH", "--tags", "2>&1")
+    print(git('status'))
 
 
 def main():
-    if os.getenv('TRAVIS') == 'true':
-        print("RUNNING ON TRAVIS, BUMP DISABLED FOR NOW")
-        return 0
 
-    env_list = ["CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "NPA_USERNAME",
-                "NPA_PASSWORD"]
-    [verify_env_var_presence(e) for e in env_list]
-
-    tag_repo()
+    tag_repo(os.getenv('TRAVIS') == 'true')
 
     return 0
 
