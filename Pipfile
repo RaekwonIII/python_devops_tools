@@ -15,6 +15,7 @@ pyyaml = "*"
 setuptools = "*"
 python-gitlab = "*"
 bump2version = "*"
+pygithub = "*"
 
 [dev-packages]
 coverage = "*"
