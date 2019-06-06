@@ -74,16 +74,20 @@ def get_gitlab_labels():
 def get_github_labels():
     # pr_number = os.getenv('TRAVIS_PULL_REQUEST')
     # or extract from TRAVIS_COMMIT_MESSAGE, same as GitLab
-    pr_number = extract_merge_request_id_from_commit(
-        os.getenv("TRAVIS_COMMIT_MESSAGE"),
-        GITHUB_PULL_REQUEST_COMMIT_REGEX,
-    )
+    try:
+        pr_number = extract_merge_request_id_from_commit(
+            os.getenv("TRAVIS_COMMIT_MESSAGE"),
+            GITHUB_PULL_REQUEST_COMMIT_REGEX,
+        )
+    except MergeRequestIDNotFoundException as mridnf:
+        print(mridnf)
+        return []
+    else:
+        g = Github(os.getenv("GITHUBKEY"))
+        repo = g.get_repo(os.getenv("TRAVIS_REPO_SLUG"))
 
-    g = Github(os.getenv("GITHUBKEY"))
-    repo = g.get_repo(os.getenv("TRAVIS_REPO_SLUG"))
-
-    issue = repo.get_issue(pr_number)
-    return [label.name for label in issue.get_labels()]
+        issue = repo.get_issue(pr_number)
+        return [label.name for label in issue.get_labels()]
 
 
 def bump(labels=None):
