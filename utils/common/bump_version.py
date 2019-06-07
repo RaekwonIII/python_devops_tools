@@ -104,10 +104,9 @@ def bump(labels=None):
     with open('VERSION') as f:
         version = f.readline()
 
-    # # commit files changed by version bumping
-    # git("commit", "-a", "-m", COMMIT_MESSAGE.format(version))
-    # # push commit with the option to skip the CI or it will trigger same job that called this script!
-    # git("push", "--force", "-o", "ci.skip")
+    print("Committing files changed by version bumping")
+    # commit files changed by version bumping
+    print(git("commit", "-a", "-m", COMMIT_MESSAGE.format(version) + ' [skip ci]'))
 
     return version
 
@@ -116,13 +115,11 @@ def tag_repo(tag):
     print("Creating tag number", tag)
     # create a tag from new version and push it
     print(git("tag", tag, '-a', '-m', COMMIT_MESSAGE.format(tag)))
-    # git("push", "origin", "$TRAVIS_BRANCH", "2>&1")
-    # git("push", "origin", "$TRAVIS_BRANCH", "--tags", "2>&1")
-    print(git('status'))
 
 
 def main():
     branch_name = os.getenv('TRAVIS_BRANCH') or 'master'
+    print('Using branch %s', branch_name)
     is_travis_ci = os.getenv('TRAVIS') == 'true'
 
     if is_travis_ci:
@@ -157,6 +154,11 @@ def main():
     git("config", "user.name", name)
     
     tag_repo(tag)
+
+    # # push commit with the option to skip the CI or it will trigger same job that called this script!
+    print(git("push", "origin", branch_name, "-o", "ci.skip", "2>&1"))
+    # push tags
+    print(git("push", "origin", branch_name, "--tags", "2>&1"))
 
     return 0
 
