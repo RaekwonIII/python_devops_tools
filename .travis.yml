@@ -6,9 +6,7 @@ python: "3.7"
 stages:
   - name: test
   - name: bump_and_tag
-    if: branch = master AND \
-    NOT tag IS present AND \
-    type != pull_request
+    if: branch = master AND NOT tag IS present AND type != pull_request
 
 install:
   - pip install pipenv
