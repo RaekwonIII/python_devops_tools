@@ -11,7 +11,7 @@ class MergeRequestIDNotFoundException(Exception):
     pass
 
 
-GITHUB_PULL_REQUEST_COMMIT_REGEX = r'(^Merge pull request \S*#)(\d+)'
+GITHUB_PULL_REQUEST_COMMIT_REGEX = r'(^Merge pull request #|[\w*\s*\(]#)(\d+)'
 GITLAB_MERGE_REQUEST_COMMIT_REGEX = r'(\S*\/\S*!)(\d+)'
 COMMIT_MESSAGE = "Auto-bumping project to version {}"
 TRAVIS_EMAIL = "build@travis-ci.com"
@@ -158,11 +158,11 @@ def main():
     
     tag_repo(tag)
 
-    # print(git("remote", "show", "origin"))
-    # # push commit with the option to skip the CI or it will trigger same job that called this script!
-    # print(git("push", "origin", branch_name, "-o", "ci.skip", "2>&1"))
-    # # push tags
-    # print(git("push", "origin", branch_name, "--tags", "2>&1"))
+    print(git("remote", "show", "origin"))
+    # push commit with the option to skip the CI or it will trigger same job that called this script!
+    print(git("push", "origin", branch_name, "-o", "ci.skip"))
+    # push tags
+    print(git("push", "origin", branch_name, "--tags",))
 
     return 0
 
