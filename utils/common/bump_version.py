@@ -4,13 +4,18 @@ import re
 import sys
 import subprocess
 import gitlab
+from github import Github
 
+GITLAB_MERGE_REQUEST_COMMIT_REGEX = r'(\S*\/\S*!)(\d+)'
+GITHUB_PULL_REQUEST_COMMIT_REGEX = r'(^Merge pull request \S*#)(\d+)'
 
 class MergeRequestIDNotFoundException(Exception):
     pass
 
 
 COMMIT_MESSAGE = "Auto-bumping project to version {}"
+TRAVIS_EMAIL = "build@travis-ci.com"
+TRAVIS_NAME = "Travis CI"
 
 
 def git(*args):
@@ -29,9 +34,9 @@ def extract_gitlab_url_from_project_url():
     return project_url.split(u"/{}".format(project_path), 1)[0]
 
 
-def extract_merge_request_id_from_commit(message):
+def extract_merge_request_id_from_commit(message, regex):
     # matches commit messages that terminate with something like "See merge request XYZ/repo!<MERGE_REQUEST_ID>"
-    matches = re.search(r'(\S*\/\S*!)(\d+)', message, re.M | re.I)
+    matches = re.search(regex, message, re.M | re.I)
 
     if matches is None:
         raise MergeRequestIDNotFoundException(
@@ -53,21 +58,40 @@ def retrieve_labels_from_merge_request(merge_request_id):
     return merge_request.labels
 
 
-def bump():
+def get_gitlab_labels():
     # get last commit message, it will be used later
     message = git("log", "-1", "--pretty=%B").decode("utf-8")
 
-    # check out master branch, because we'll need to commit to it
-    git('checkout', 'master')
-
     try:
-        merge_request_id = extract_merge_request_id_from_commit(message)
+        merge_request_id = extract_merge_request_id_from_commit(message, GITLAB_MERGE_REQUEST_COMMIT_REGEX)
     except MergeRequestIDNotFoundException as mridnf:
         print(mridnf)
-        labels = []
+        return []
     else:
-        labels = retrieve_labels_from_merge_request(merge_request_id)
+        return retrieve_labels_from_merge_request(merge_request_id)
 
+
+def get_github_labels():
+    # pr_number = os.getenv('TRAVIS_PULL_REQUEST')
+    # or extract from TRAVIS_COMMIT_MESSAGE, same as GitLab
+    try:
+        pr_number = extract_merge_request_id_from_commit(
+            os.getenv("TRAVIS_COMMIT_MESSAGE"),
+            GITHUB_PULL_REQUEST_COMMIT_REGEX,
+        )
+    except MergeRequestIDNotFoundException as mridnf:
+        print(mridnf)
+        return []
+    else:
+        g = Github(os.getenv("GITHUBKEY"))
+        repo = g.get_repo(os.getenv("TRAVIS_REPO_SLUG"))
+
+        issue = repo.get_issue(pr_number)
+        return [label.name for label in issue.get_labels()]
+
+
+def bump(labels=None):
+    labels = labels or []
     if "bump-minor" in labels:
         bump_part = 'minor'
     elif "bump-major" in labels:
@@ -80,50 +104,61 @@ def bump():
     with open('VERSION') as f:
         version = f.readline()
 
-    print(COMMIT_MESSAGE.format(version))
-
-    # commit files changed by version bumping and make the commit clean by amending previous one
-    git("commit", "-a", "-m", COMMIT_MESSAGE.format(version))
-    # push amended commit with the option to skip the CI or it will trigger same job that called this script!
-    # '--force' option is needed because previous commit has been amended
-    git("push", "--force", "-o", "ci.skip")
+    print("Committing files changed by version bumping")
+    # commit files changed by version bumping
+    print(git("commit", "-a", "-m", COMMIT_MESSAGE.format(version) + ' [skip ci]'))
 
     return version
 
 
-def tag_repo():
-    repository_url = os.environ["CI_REPOSITORY_URL"]
-    username = os.environ["NPA_USERNAME"]
-    password = os.environ["NPA_PASSWORD"]
-    email = os.environ["NPA_EMAIL"]
-    name = os.environ["NPA_NAME"]
-
-    push_url = re.sub(r'([a-z]+://)[^@]*(@.*)', r'\g<1>{}:{}\g<2>'.format(username, password), repository_url)
-
-    # update repo URL
-    git("remote", "set-url", "--push", "origin", push_url)
-    # configure git identity
-    git("config", "user.email", email)
-    git("config", "user.name", name)
-
-    tag = bump()
+def tag_repo(tag):
     print("Creating tag number", tag)
     # create a tag from new version and push it
-    git("tag", tag)
-    git("push", "origin", tag)
+    print(git("tag", tag, '-a', '-m', COMMIT_MESSAGE.format(tag)))
 
 
 def main():
+    branch_name = os.getenv('TRAVIS_BRANCH') or 'master'
+    print('Using branch %s', branch_name)
+    is_travis_ci = os.getenv('TRAVIS') == 'true'
 
-    if verify_env_var_presence("TRAVIS"):
-        print("RUNNING ON TRAVIS, BUMP DISABLED FOR NOW")
-        return 0
+    if is_travis_ci:
+        email = TRAVIS_EMAIL
+        name = TRAVIS_EMAIL
 
-    env_list = ["CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "NPA_USERNAME",
-                "NPA_PASSWORD"]
-    [verify_env_var_presence(e) for e in env_list]
+        labels = get_github_labels()
+    else:
+        env_list = ["CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "NPA_USERNAME",
+                    "NPA_PASSWORD"]
+        [verify_env_var_presence(e) for e in env_list]
 
-    tag_repo()
+        labels = get_gitlab_labels()
+
+        repository_url = os.environ["CI_REPOSITORY_URL"]
+        username = os.environ["NPA_USERNAME"]
+        password = os.environ["NPA_PASSWORD"]
+        email = os.environ["NPA_EMAIL"]
+        name = os.environ["NPA_NAME"]
+
+        push_url = re.sub(r'([a-z]+://)[^@]*(@.*)', r'\g<1>{}:{}\g<2>'.format(username, password), repository_url)
+
+        # update repo URL
+        git("remote", "set-url", "--push", "origin", push_url)
+
+    git('checkout', branch_name)
+
+    tag = bump(labels=labels)
+
+    # configure git identity
+    git("config", "user.email", email)
+    git("config", "user.name", name)
+    
+    tag_repo(tag)
+
+    # # push commit with the option to skip the CI or it will trigger same job that called this script!
+    print(git("push", "origin", branch_name, "-o", "ci.skip", "2>&1"))
+    # push tags
+    print(git("push", "origin", branch_name, "--tags", "2>&1"))
 
     return 0
 

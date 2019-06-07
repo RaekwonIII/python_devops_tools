@@ -2,7 +2,7 @@ from unittest import main, TestCase
 
 from unittest.mock import patch, MagicMock
 from utils.common import bump_version
-from utils.common.bump_version import MergeRequestIDNotFoundException
+from utils.common.bump_version import MergeRequestIDNotFoundException, GITLAB_MERGE_REQUEST_COMMIT_REGEX
 
 
 class BumpVersionTest(TestCase):
@@ -38,12 +38,12 @@ class BumpVersionTest(TestCase):
     def test_extract_merge_request_id(self):
         expected_id = 10
         message = u"Real Commit message 123\n\nSee merge request XYZ/repo!{}".format(expected_id)
-        merge_id = bump_version.extract_merge_request_id_from_commit(message)
+        merge_id = bump_version.extract_merge_request_id_from_commit(message, GITLAB_MERGE_REQUEST_COMMIT_REGEX)
         self.assertEqual(merge_id, str(expected_id))
 
         new_message = u"Simple Commit Msg"
         with self.assertRaises(MergeRequestIDNotFoundException) as mridnf:
-            bump_version.extract_merge_request_id_from_commit(new_message)
+            bump_version.extract_merge_request_id_from_commit(new_message, GITLAB_MERGE_REQUEST_COMMIT_REGEX)
         self.assertTrue(
             u"Unable to extract merge request from commit message: {}".format(new_message) in str(mridnf.exception)
         )

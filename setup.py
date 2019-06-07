@@ -20,7 +20,8 @@ setup(
         'bump2version',
         'pydocumentdb',
         'PyYAML',
-        'python-gitlab'
+        'python-gitlab',
+        'PyGithub',
     ],
     entry_points={
         'console_scripts': [

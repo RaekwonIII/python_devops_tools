@@ -4,24 +4,24 @@ dist: xenial
 python: "3.7"
 
 stages:
-  - test
-  - bump_and_tag
-  - name: publish
-    if: $(git tag --points-at $TRAVIS_COMMIT)
+  - name: test
+  - name: bump_and_tag
+    if: branch = master AND NOT tag IS present AND type != pull_request
 
 install:
   - pip install pipenv
   - pipenv install --dev
 
+script: skip
+
 jobs:
   include:
     - stage: test
-    - script:
+      script:
       - pipenv run coverage run -m unittest discover
       - pipenv run coverage report
     # update version, and commit tag when on master and not tagged
     - stage: bump_and_tag
-        - on:
-            branch: master
-            condition: -z $(git tag --points-at $TRAVIS_COMMIT)
-       script: $TRAVIS_BUILD_DIR/utikls/common/bump_version.sh
+      on:
+        condition: -z $(git tag --points-at $TRAVIS_COMMIT)
+      script: $TRAVIS_BUILD_DIR/utils/common/bump_version.py
