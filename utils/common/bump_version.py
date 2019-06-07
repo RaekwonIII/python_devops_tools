@@ -119,6 +119,7 @@ def main():
     branch_name = os.getenv('TRAVIS_BRANCH') or 'master'
     print('Using branch ', branch_name)
     is_travis_ci = os.getenv('TRAVIS') == 'true'
+    push_commands_list = ["push", "origin", branch_name]
 
     if is_travis_ci:
         env_list = ["GH_TOKEN", "TRAVIS_REPO_SLUG", "TRAVIS_COMMIT_MESSAGE"]
@@ -143,6 +144,7 @@ def main():
         name = os.environ["NPA_NAME"]
 
         push_url = re.sub(r'([a-z]+://)[^@]*(@.*)', r'\g<1>{}:{}\g<2>'.format(username, password), repository_url)
+        push_commands_list.extend(["-o", "ci.skip"])
 
     # update repo URL
     print("Switching push URL to authenticated one")
@@ -157,10 +159,8 @@ def main():
     git("config", "user.name", name)
     
     tag_repo(tag)
-
-    print(git("remote", "show", "origin"))
     # push commit with the option to skip the CI or it will trigger same job that called this script!
-    print(git("push", "origin", branch_name, "-o", "ci.skip"))
+    print(git(*push_commands_list))
     # push tags
     print(git("push", "origin", branch_name, "--tags",))
 
