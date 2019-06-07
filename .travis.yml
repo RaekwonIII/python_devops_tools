@@ -19,7 +19,12 @@ jobs:
   - stage: bump_and_tag
     on:
       condition: "-z $(git tag --points-at $TRAVIS_COMMIT)"
-    script: "$TRAVIS_BUILD_DIR/utils/common/bump_version.py"
+    script:
+    - "$TRAVIS_BUILD_DIR/utils/common/bump_version.py"
+#    - git remote set-url --push origin https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git
+    - git remote show origin
+    - git push origin master
+    - git push origin master --tags
 env:
   global:
   - secure: nGgkl99xW1rCHcoDi0p+2XZFd3NUF8Df9ZEAkMKjzqu+2qRUFqxXdxc1HFwjgqLhqB2NiyW6T9A2XKx9y8JJiEdv+PEJLq7sf17q4NHFlfdiFNVl57lQgyGmHOfmIIJd7xtnN65Czy7z8LPzHEZtlVBsNZa60KAxDWljEoL1k8SgJ8IltVm+gZrpg5oE6pEh6/Q2r9zQwOA56RZVWVxuj27n/mYx9izfv7ywGvCPO/d0y0Fxb1CGLHVLIGsRbz572I94EC6bjjIGtzy5TA1FpGfbnm46HPm4lXkPplkjEWvqgEd8w1pyos4TlAPVISb0R9MxeynRlLfS0I8pObiItiw27dtPUO1CldMJ+TserTd5Fd2PZK2bryJCO2Z86iJ3NAyjqyO7jfgsxZyXGsm/37I9OaTF+T3M7pIOVFGBDtyJtQU+eV/NzOn7DtRyds6o4xa3qPdkAMsdMgN+Ks3XerRn8OwwT8eGNB7IXyeZ3SkHbW7JjPsTW8Zk7L8qu6Pq7LtaWz4mu6EFGgyAaGdBU1P2VmvhtvjK1+NBhgml4DY81MwMRsmqfKEf4NYUUqUZty+MooAsAkX5GiqpFR4PwYUKSE3Lcbb6BCiBPqShRsoeDCA9TA3aoYudtzFOWQxyRYOQIXqRh/R7KGKnkn5W7186OYTN5qHIwEcGKwu7fHM=
