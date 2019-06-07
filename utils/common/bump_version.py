@@ -148,9 +148,9 @@ def main():
         # update repo URL
         git("remote", "set-url", "--push", "origin", push_url)
 
-    tag = bump(labels=labels)
-
     git('checkout', branch_name)
+
+    tag = bump(labels=labels)
 
     # configure git identity
     git("config", "user.email", email)
