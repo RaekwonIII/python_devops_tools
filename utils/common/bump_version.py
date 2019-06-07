@@ -72,8 +72,6 @@ def get_gitlab_labels():
 
 
 def get_github_labels():
-    # pr_number = os.getenv('TRAVIS_PULL_REQUEST')
-    # or extract from TRAVIS_COMMIT_MESSAGE, same as GitLab
     try:
         pr_number = int(extract_merge_request_id_from_commit(
             os.getenv("TRAVIS_COMMIT_MESSAGE"),
@@ -114,7 +112,7 @@ def bump(labels=None):
 def tag_repo(tag):
     print("Creating tag number", tag)
     # create a tag from new version and push it
-    print(git("tag", tag, '-a', '-m', COMMIT_MESSAGE.format(tag)))
+    git("tag", tag, '-a', '-m', COMMIT_MESSAGE.format(tag))
 
 
 def main():
@@ -123,10 +121,14 @@ def main():
     is_travis_ci = os.getenv('TRAVIS') == 'true'
 
     if is_travis_ci:
+        env_list = ["GH_TOKEN", "TRAVIS_REPO_SLUG", "TRAVIS_COMMIT_MESSAGE"]
+        [verify_env_var_presence(e) for e in env_list]
+
         email = TRAVIS_EMAIL
         name = TRAVIS_EMAIL
 
         labels = get_github_labels()
+        push_url = "https://{}@github.com/{}.git".format(os.getenv('GH_TOKEN'), os.getenv('TRAVIS_REPO_SLUG'))
     else:
         env_list = ["CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "NPA_USERNAME",
                     "NPA_PASSWORD"]
@@ -142,8 +144,9 @@ def main():
 
         push_url = re.sub(r'([a-z]+://)[^@]*(@.*)', r'\g<1>{}:{}\g<2>'.format(username, password), repository_url)
 
-        # update repo URL
-        git("remote", "set-url", "--push", "origin", push_url)
+    # update repo URL
+    print("Switching push URL to authenticated one")
+    git("remote", "set-url", "--push", "origin", push_url)
 
     git('checkout', branch_name)
 
