@@ -158,10 +158,11 @@ def main():
     
     tag_repo(tag)
 
+    # print(git("remote", "show", "origin"))
     # # push commit with the option to skip the CI or it will trigger same job that called this script!
-    print(git("push", "origin", branch_name, "-o", "ci.skip", "2>&1"))
-    # push tags
-    print(git("push", "origin", branch_name, "--tags", "2>&1"))
+    # print(git("push", "origin", branch_name, "-o", "ci.skip", "2>&1"))
+    # # push tags
+    # print(git("push", "origin", branch_name, "--tags", "2>&1"))
 
     return 0
 
