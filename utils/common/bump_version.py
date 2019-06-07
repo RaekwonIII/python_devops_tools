@@ -63,7 +63,7 @@ def get_gitlab_labels():
     message = git("log", "-1", "--pretty=%B").decode("utf-8")
 
     try:
-        merge_request_id = int(extract_merge_request_id_from_commit(message, GITLAB_MERGE_REQUEST_COMMIT_REGEX))
+        merge_request_id = extract_merge_request_id_from_commit(message, GITLAB_MERGE_REQUEST_COMMIT_REGEX)
     except MergeRequestIDNotFoundException as mridnf:
         print(mridnf)
         return []
@@ -75,10 +75,10 @@ def get_github_labels():
     # pr_number = os.getenv('TRAVIS_PULL_REQUEST')
     # or extract from TRAVIS_COMMIT_MESSAGE, same as GitLab
     try:
-        pr_number = extract_merge_request_id_from_commit(
+        pr_number = int(extract_merge_request_id_from_commit(
             os.getenv("TRAVIS_COMMIT_MESSAGE"),
             GITHUB_PULL_REQUEST_COMMIT_REGEX,
-        )
+        ))
     except MergeRequestIDNotFoundException as mridnf:
         print(mridnf)
         return []
@@ -119,7 +119,7 @@ def tag_repo(tag):
 
 def main():
     branch_name = os.getenv('TRAVIS_BRANCH') or 'master'
-    print('Using branch %s', branch_name)
+    print('Using branch ', branch_name)
     is_travis_ci = os.getenv('TRAVIS') == 'true'
 
     if is_travis_ci:
