@@ -6,13 +6,13 @@ import subprocess
 import gitlab
 from github import Github
 
-GITLAB_MERGE_REQUEST_COMMIT_REGEX = r'(\S*\/\S*!)(\d+)'
-GITHUB_PULL_REQUEST_COMMIT_REGEX = r'(^Merge pull request \S*#)(\d+)'
 
 class MergeRequestIDNotFoundException(Exception):
     pass
 
 
+GITHUB_PULL_REQUEST_COMMIT_REGEX = r'(^Merge pull request \S*#)(\d+)'
+GITLAB_MERGE_REQUEST_COMMIT_REGEX = r'(\S*\/\S*!)(\d+)'
 COMMIT_MESSAGE = "Auto-bumping project to version {}"
 TRAVIS_EMAIL = "build@travis-ci.com"
 TRAVIS_NAME = "Travis CI"
@@ -63,7 +63,7 @@ def get_gitlab_labels():
     message = git("log", "-1", "--pretty=%B").decode("utf-8")
 
     try:
-        merge_request_id = extract_merge_request_id_from_commit(message, GITLAB_MERGE_REQUEST_COMMIT_REGEX)
+        merge_request_id = int(extract_merge_request_id_from_commit(message, GITLAB_MERGE_REQUEST_COMMIT_REGEX))
     except MergeRequestIDNotFoundException as mridnf:
         print(mridnf)
         return []
