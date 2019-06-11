@@ -104,7 +104,7 @@ def bump(labels=None):
 
     print("Committing files changed by version bumping")
     # commit files changed by version bumping
-    print(git("commit", "-a", "-m", COMMIT_MESSAGE.format(version) + ' [skip ci]'))
+    print(git("commit", "-a", "-m", COMMIT_MESSAGE.format(version)))
 
     return version
 

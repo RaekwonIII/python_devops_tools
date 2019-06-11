@@ -4,6 +4,7 @@ dist: xenial
 python: '3.7'
 stages:
 - name: test
+  if: tag IS NOT present
 - name: bump_and_tag
   if: branch = master AND NOT tag IS present AND type != pull_request
 - name: publish
