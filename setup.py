@@ -7,7 +7,7 @@ except ImportError:
 
 setup(
     name='scarfaceiii-utils',
-    version='1.1.5',
+    version='1.1.6',
     packages=find_packages(),
     package_data={
         '': ['*.json', '*.xml']
