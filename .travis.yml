@@ -7,7 +7,8 @@ stages:
 - name: bump_and_tag
   if: branch = master AND NOT tag IS present AND type != pull_request
 - name: publish
-  if: branch = master and tag IS present AND type != pull_request
+  if: tag IS present
+
 install:
 - pip install pipenv
 - pipenv install --dev
@@ -24,8 +25,8 @@ jobs:
     script:
     - pipenv run $TRAVIS_BUILD_DIR/utils/common/bump_version.py
   - stage: publish
-    on:
-      condition: "$(git tag --points-at $TRAVIS_COMMIT)"
+#    on:
+#      tags: true
     script:
     - pipenv run python setup.py sdist
     - export TWINE_USERNAME=$FURY_PUSH_AUTH
