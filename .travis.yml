@@ -6,6 +6,8 @@ stages:
 - name: test
 - name: bump_and_tag
   if: branch = master AND NOT tag IS present AND type != pull_request
+- name: publish
+  if: branch = master and tag IS present AND type != pull_request
 install:
 - pip install pipenv
 - pipenv install --dev
@@ -21,6 +23,17 @@ jobs:
       condition: "-z $(git tag --points-at $TRAVIS_COMMIT)"
     script:
     - pipenv run $TRAVIS_BUILD_DIR/utils/common/bump_version.py
+  - stage: bump_and_tag
+    on:
+      condition: "$(git tag --points-at $TRAVIS_COMMIT)"
+    script:
+    - pipenv run python setup.py sdist
+    - TWINE_USERNAME=FURY_PUSH_AUTH twine upload dist/* --repository-url https://push.fury.io/scarfaceiii -p ""
 env:
   global:
+  # GH_TOKEN
   - secure: nGgkl99xW1rCHcoDi0p+2XZFd3NUF8Df9ZEAkMKjzqu+2qRUFqxXdxc1HFwjgqLhqB2NiyW6T9A2XKx9y8JJiEdv+PEJLq7sf17q4NHFlfdiFNVl57lQgyGmHOfmIIJd7xtnN65Czy7z8LPzHEZtlVBsNZa60KAxDWljEoL1k8SgJ8IltVm+gZrpg5oE6pEh6/Q2r9zQwOA56RZVWVxuj27n/mYx9izfv7ywGvCPO/d0y0Fxb1CGLHVLIGsRbz572I94EC6bjjIGtzy5TA1FpGfbnm46HPm4lXkPplkjEWvqgEd8w1pyos4TlAPVISb0R9MxeynRlLfS0I8pObiItiw27dtPUO1CldMJ+TserTd5Fd2PZK2bryJCO2Z86iJ3NAyjqyO7jfgsxZyXGsm/37I9OaTF+T3M7pIOVFGBDtyJtQU+eV/NzOn7DtRyds6o4xa3qPdkAMsdMgN+Ks3XerRn8OwwT8eGNB7IXyeZ3SkHbW7JjPsTW8Zk7L8qu6Pq7LtaWz4mu6EFGgyAaGdBU1P2VmvhtvjK1+NBhgml4DY81MwMRsmqfKEf4NYUUqUZty+MooAsAkX5GiqpFR4PwYUKSE3Lcbb6BCiBPqShRsoeDCA9TA3aoYudtzFOWQxyRYOQIXqRh/R7KGKnkn5W7186OYTN5qHIwEcGKwu7fHM=
+  # FURY_AUTH
+  - secure: RpGCmrNb95AOUDWbtnwscqYyFMSMsvdb0RimDJRbqUYRkeiptk5kMLToD3JhZXtibHz7Z0sSKIBHTOzvpSU/HVMPxol/nXqpeQiMxlbE8gjwKzqRwwTdS7qbGF1ll/P4MVMc3uhbznfEqtt7J0MH4wqN5B2z99f6/oxVFABr5NRGgxoaDxwGzDa9TWRMEP079dECQs6/+L6n89V/lG/x4cJQ+zTgGjX/veRYQWzJgoG/uT5FskxZULYuZXC7MbVxVcbJEzSgsBguePcn19kvbJ13bx4DY7HP24L4YH0or8B8X0ZpUm7Q6Yv5fTPtDv/u/ftyfxVoG4fdatpb/wYTw8H5lxJurS3FSqC65C9onZg/hE1LuXMBQmMfFLRRm/vhURg9qiNsFo9JC3ldBdy2dJbKQA2kBzZdfeQO1cfsbwoQ5ECLQQtgcGnKx0d0iKqyMFeqj9rMSLu4bcISvl1bM6B8mpQxMmanT+qmnqmJ0pgO190DgnC1nQZknDCi18Dbk6iHFrdl8hFHpNwX//pIZOlo9M5Ib8VQRm45j+ExHwGHpIRfQ1ahn+jGwFP8GKiASt6W2Xc1aZJXxzNTF6BXSch5gWOYc67Pa4MJrLIXV8pGGhEJ5V93p0jLmHuQIsEPH6wq/Imp4BwpuMzHLA0Xk2bXg57Ls68/bkSLVyc42t8=
+  # FURY_PUSH_AUTH
+  - secure: FcFJT7OxTy9kHoGpWZ3gXGyBG3RCtBj9NKeNUbOo9KsydseRZuVeeuYYvHJVX+6eMhhei3newZ7ITOt+GX7yKglY5a8CIpLfhtumzjM/kQA68uUigMCUc25pSO4vzGtJPd74+Zoyc75GgGRd9LfcS0Ti3SBbfaZuoolAF4JQ3Jw87s29c4gWFUyRE+btPbC0Hy7vmdan8GrU1Q0D3WMUmdo2HuzpYxGgWN5KDLxtJ7Z3Su4MMBdc+GBiqTHSIm7A4d27iBKhmBUP8XdQFFkxROqzcQOBiUgpbCM2h2jJ1NrG36lvMvVh5hfxlT6AmkCoVLfgm/gur8GYlWHhpNG1sAUSAvThJqdh5IREEym7L5ZMEdiK8JJW7hQrXo+wuZ8OyGtVeakCuY7tHjc4N8K4/gz/8LNXJaPvl/Kpihs2wqSE0KnPAJH0Lq1DHMMg4UYHXvgUCxGMVBcsS/O/hRVpSe+sBuUd7bVJX+6fIzNenTTwbQXdcCJONWcKomwfHLXoKyXiWZ//8LQ7JyIJtgSUj2fC6t7/JOS7MckBrLyPUDgeUYNpJnz9m9svG3iq3OUHb+tSY6RJBeWkN/zSCV2kGldJvKAcxsORdcuHBnoVNYKcstI3ShZYNmDsnRzzvefZZYXWHpWhZnRySajeI1NKPfx8nng2J9zsz6vEgwCYETM=
