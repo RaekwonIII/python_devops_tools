@@ -13,7 +13,7 @@ class MergeRequestIDNotFoundException(Exception):
 
 GITHUB_PULL_REQUEST_COMMIT_REGEX = r'(^Merge pull request #|[\w*\s*\(]#)(\d+)'
 GITLAB_MERGE_REQUEST_COMMIT_REGEX = r'(\S*\/\S*!)(\d+)'
-COMMIT_MESSAGE = "Auto-bumping project to version {}"
+COMMIT_MESSAGE = "Auto-bumping project to version {} (skip-build)"
 TRAVIS_EMAIL = "build@travis-ci.com"
 TRAVIS_NAME = "Travis CI"
 
