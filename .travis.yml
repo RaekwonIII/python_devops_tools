@@ -23,12 +23,14 @@ jobs:
       condition: "-z $(git tag --points-at $TRAVIS_COMMIT)"
     script:
     - pipenv run $TRAVIS_BUILD_DIR/utils/common/bump_version.py
-  - stage: bump_and_tag
+  - stage: publish
     on:
       condition: "$(git tag --points-at $TRAVIS_COMMIT)"
     script:
     - pipenv run python setup.py sdist
-    - TWINE_USERNAME=FURY_PUSH_AUTH twine upload dist/* --repository-url https://push.fury.io/scarfaceiii -p ""
+    - export TWINE_USERNAME=$FURY_PUSH_AUTH
+    - twine upload dist/* --repository-url https://push.fury.io/scarfaceiii -p ""
+
 env:
   global:
   # GH_TOKEN
