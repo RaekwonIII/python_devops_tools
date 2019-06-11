@@ -3,7 +3,7 @@ name = "pypi"
 url = "https://pypi.python.org/pypi"
 
 [[source]]
-url = "https://${FURY_AUTH}@pypi.fury.io/USERNAME/"
+url = "https://${FURY_AUTH}@pypi.fury.io/scarfaceiii/"
 verify_ssl = true
 name = "fury"
 
