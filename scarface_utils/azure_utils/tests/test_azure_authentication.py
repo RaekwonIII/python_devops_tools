@@ -4,7 +4,7 @@ from msrest.exceptions import AuthenticationError
 from unittest import main, TestCase
 from unittest.mock import patch, MagicMock, mock_open
 
-from utils.azure_utils.azure_authentication import AzureAuthentication, AzureAuthenticationException
+from scarface_utils.azure_utils.azure_authentication import AzureAuthentication, AzureAuthenticationException
 
 CONFIG_FILE = u"file.cfg"
 
@@ -33,9 +33,9 @@ CONFIG_TEMPLATE_BATCH = u'[Batch]\n' \
 class AzureAuthenticationTest(TestCase):
 
     @classmethod
-    @patch('utils.azure_utils.azure_authentication.ServicePrincipalCredentials')
-    @patch('utils.azure_utils.azure_authentication.KeyVaultClient')
-    @patch('utils.azure_utils.azure_authentication.KeyVaultAuthentication')
+    @patch('scarface_utils.azure_utils.azure_authentication.ServicePrincipalCredentials')
+    @patch('scarface_utils.azure_utils.azure_authentication.KeyVaultClient')
+    @patch('scarface_utils.azure_utils.azure_authentication.KeyVaultAuthentication')
     def setUpClass(cls, mocked_kv_auth, mocked_kv_client, mocked_sp_credentials):
         cls.test_secret = 'test-secret-value'
         test_secret_1 = MagicMock()
@@ -52,9 +52,9 @@ class AzureAuthenticationTest(TestCase):
     def setUp(self):
         pass
 
-    @patch('utils.azure_utils.azure_authentication.ServicePrincipalCredentials')
-    @patch('utils.azure_utils.azure_authentication.KeyVaultClient')
-    @patch('utils.azure_utils.azure_authentication.KeyVaultAuthentication')
+    @patch('scarface_utils.azure_utils.azure_authentication.ServicePrincipalCredentials')
+    @patch('scarface_utils.azure_utils.azure_authentication.KeyVaultClient')
+    @patch('scarface_utils.azure_utils.azure_authentication.KeyVaultAuthentication')
     @patch('builtins.open', new_callable=mock_open)
     def test_constructor(self, mocked_open, mocked_kv_auth, mocked_kv_client, mocked_sp_credentials):
         file_mock = StringIO(

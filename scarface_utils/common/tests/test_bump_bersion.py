@@ -1,8 +1,8 @@
 from unittest import main, TestCase
 
 from unittest.mock import patch, MagicMock
-from utils.common import bump_version
-from utils.common.bump_version import MergeRequestIDNotFoundException, GITLAB_MERGE_REQUEST_COMMIT_REGEX
+from scarface_utils.common import bump_version
+from scarface_utils.common.bump_version import MergeRequestIDNotFoundException, GITLAB_MERGE_REQUEST_COMMIT_REGEX
 
 
 class BumpVersionTest(TestCase):

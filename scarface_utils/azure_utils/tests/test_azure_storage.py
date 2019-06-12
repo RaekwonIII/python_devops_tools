@@ -6,7 +6,7 @@ from unittest import main, TestCase
 from azure.common import AzureHttpError
 from unittest.mock import patch, MagicMock, mock_open
 
-from utils.azure_utils.azure_storage import AzureStorage
+from scarface_utils.azure_utils.azure_storage import AzureStorage
 
 CONFIG_TEMPLATE = '[KeyVault]\n' \
                   'client_id={}\n' \
@@ -55,7 +55,7 @@ STORAGE_SECRET = SAS_TOKEN
 class AzureStorageTest(TestCase):
 
     @classmethod
-    @patch('utils.azure_utils.azure_storage.BlockBlobService')
+    @patch('scarface_utils.azure_utils.azure_storage.BlockBlobService')
     def setUpClass(cls, mocked_block_blob):
         logging.basicConfig(level=logging.ERROR)
         obj_a = MagicMock()
@@ -84,7 +84,7 @@ class AzureStorageTest(TestCase):
     def setUp(self):
         pass
 
-    @patch('utils.azure_utils.azure_storage.BlockBlobService')
+    @patch('scarface_utils.azure_utils.azure_storage.BlockBlobService')
     @patch('builtins.open', new_callable=mock_open)
     def test_constructor(
             self,
@@ -111,7 +111,7 @@ class AzureStorageTest(TestCase):
         self.assertEqual(az_storage.MAX_CONNECTIONS, DEFAULT_MAX_CONNECTIONS)
         self.assertEqual(az_storage.config_file, CONFIG_FILE)
 
-    @patch('utils.azure_utils.azure_storage.BlockBlobService')
+    @patch('scarface_utils.azure_utils.azure_storage.BlockBlobService')
     def test_constructor_from_config(
             self,
             mock_blockblobservice,
@@ -129,8 +129,8 @@ class AzureStorageTest(TestCase):
         self.assertEqual(az_storage.container_name, BERGAMOT_CONTAINER_NAME)
         self.assertEqual(az_storage.MAX_CONNECTIONS, DEFAULT_MAX_CONNECTIONS)
 
-    @patch('utils.azure_utils.azure_storage.AzureAuthentication')
-    @patch('utils.azure_utils.azure_storage.BlockBlobService')
+    @patch('scarface_utils.azure_utils.azure_storage.AzureAuthentication')
+    @patch('scarface_utils.azure_utils.azure_storage.BlockBlobService')
     @patch('builtins.open', new_callable=mock_open)
     def test_constructor_from_key_vault(self, mocked_open, mocked_blockblobservice, mocked_azure_auth):
         file_mock = StringIO(
@@ -260,7 +260,7 @@ class AzureStorageTest(TestCase):
         files_uploaded = self.azure_storage.upload_directory("dir")
         self.assertEqual(files_uploaded, 2)
 
-    @patch('utils.azure_utils.azure_storage.AzureStorage.blob_exists')
+    @patch('scarface_utils.azure_utils.azure_storage.AzureStorage.blob_exists')
     def test_get_new_blob_name(self, mock_blob_exists):
         mock_blob_exists.side_effect = [True, True, False]
         file_size = 100

@@ -21,7 +21,7 @@ bump_and_tag:
   script:
     - pip install pipenv
     - pipenv install --dev
-    - pipenv run ./utils/common/bump_version.py
+    - pipenv run ./scarface_utils/common/bump_version.py
 
 push:pypi:
   stage: publish

@@ -7,9 +7,9 @@ import pydocumentdb.document_client as document_client
 import pydocumentdb.errors as errors
 from requests.exceptions import ProxyError
 
-from utils.azure_utils.exceptions import CosmosDBConnectionException
-from utils.azure_utils.constants import DOCUMENT_QUERY
-from utils.azure_utils.azure_authentication import AzureAuthentication
+from scarface_utils.azure_utils.exceptions import CosmosDBConnectionException
+from scarface_utils.azure_utils.constants import DOCUMENT_QUERY
+from scarface_utils.azure_utils.azure_authentication import AzureAuthentication
 
 
 class CosmosDBService(object):

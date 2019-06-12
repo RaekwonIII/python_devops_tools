@@ -6,7 +6,7 @@ import io
 
 import azure.batch.batch_service_client as batch
 import azure.batch.models as batchmodels
-from utils.azure_utils.azure_authentication import AzureAuthentication
+from scarface_utils.azure_utils.azure_authentication import AzureAuthentication
 
 UBUNTU_IMAGE_CONFIG = batchmodels.VirtualMachineConfiguration(
     image_reference=batchmodels.ImageReference(

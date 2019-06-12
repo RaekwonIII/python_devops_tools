@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock, mock_open
 import azure.batch.models as batchmodels
 
 
-from utils.azure_utils.azure_batch import AzureBatch
+from scarface_utils.azure_utils.azure_batch import AzureBatch
 
 CONFIG_FILE = u"file.cfg"
 
@@ -55,7 +55,7 @@ class AzureBatchTest(TestCase):
     def setUp(self):
         pass
 
-    @patch('utils.azure_utils.azure_authentication.AzureAuthentication.from_config')
+    @patch('scarface_utils.azure_utils.azure_authentication.AzureAuthentication.from_config')
     @patch('azure.batch.batch_service_client.BatchServiceClient')
     @patch('builtins.open', new_callable=mock_open)
     def test_constructor(self, mocked_open, mocked_batch_service_client, mocked_azure_authentication):

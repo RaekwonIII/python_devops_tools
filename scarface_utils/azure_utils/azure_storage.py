@@ -6,8 +6,8 @@ import logging.config
 import timeit
 import json
 
-from utils.azure_utils.exceptions import BlobExistsException
-from utils.azure_utils.azure_authentication import AzureAuthentication
+from scarface_utils.azure_utils.exceptions import BlobExistsException
+from scarface_utils.azure_utils.azure_authentication import AzureAuthentication
 
 
 class AzureStorage(object):

@@ -1,7 +1,7 @@
 from azure.keyvault import KeyVaultClient, KeyVaultAuthentication
 from azure.common.credentials import ServicePrincipalCredentials
 from msrest.exceptions import AuthenticationError
-from utils.azure_utils.constants import DEFAULT_AUTHENTICATION_RESOURCE
+from scarface_utils.azure_utils.constants import DEFAULT_AUTHENTICATION_RESOURCE
 
 import configparser
 

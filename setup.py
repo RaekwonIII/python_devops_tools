@@ -6,7 +6,7 @@ except ImportError:
     from distutils.core import setup, find_packages
 
 setup(
-    name='scarfaceiii-utils',
+    name='scarface-utils',
     version='1.1.6',
     packages=find_packages(),
     package_data={
@@ -25,7 +25,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'bump-version = utils.common.bump_version:main',
+            'bump-version = scarface_utils.common.bump_version:main',
         ]
     },
     description='Packaged utils to interact with Azure Services and auto-bump on pipeline',

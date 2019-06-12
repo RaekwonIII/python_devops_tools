@@ -3,7 +3,7 @@ from io import StringIO
 from unittest import main, TestCase
 from unittest.mock import patch, MagicMock, mock_open
 
-from utils.azure_utils.azure_cosmosdb import CosmosDBService
+from scarface_utils.azure_utils.azure_cosmosdb import CosmosDBService
 
 COLLECTION_LINK_ID = 'dbs/PMYQAA==/colls/PMYQAI7cTsM=/'
 
@@ -120,7 +120,7 @@ class CosmosDBServiceTest(TestCase):
         mocked_client.assert_called_with(COSMOS_END_POINT, {'masterKey': COSMOS_MASTER_KEY})
         self.assertEqual(cosmos_db_service.config_file, CONFIG_FILE)
 
-    @patch('utils.azure_utils.azure_cosmosdb.AzureAuthentication')
+    @patch('scarface_utils.azure_utils.azure_cosmosdb.AzureAuthentication')
     @patch('pydocumentdb.document_client.DocumentClient')
     @patch('builtins.open', new_callable=mock_open)
     def test_constructor_from_key_vault(self, mocked_open, mocked_client, mocked_azure_auth):
