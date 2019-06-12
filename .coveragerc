@@ -5,7 +5,7 @@ cover_pylib = False
 data_file = .coverage
 
 # compute coverage on the whole project
-source = ./utils
+source = ./scarface_utils
 
 omit =
     */tests/*
