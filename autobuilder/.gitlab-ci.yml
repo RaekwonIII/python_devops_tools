@@ -1,0 +1,97 @@
+image: docker:latest
+
+# When using dind, it's wise to use the overlayfs driver for
+# improved performance.
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_DRIVER: overlay2
+  IMAGE_TAG: $$(echo -en $CI_COMMIT_REF_NAME | tr -c '[:alnum:]_.-' '-')
+
+services:
+  - docker:19.03.0-dind
+
+before_script:
+  - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+
+stages:
+  - test
+  - build
+  - tag
+
+test:
+  before_script:
+    - pip install pipenv
+    - pipenv install --dev
+  stage: test
+  image: python:3.7
+  script:
+    - pipenv run coverage run -m unittest discover
+    - pipenv run coverage report
+  coverage: '/autobuilder/build_project.py.*\s+(\d+%)$/'
+
+
+build-base:
+  stage: build
+  image: docker:latest
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/base:$CI_COMMIT_SHA" -f ./Dockerfile_base .
+    - docker tag "$CI_REGISTRY_IMAGE/base:$CI_COMMIT_SHA" "$CI_REGISTRY_IMAGE/base:latest"
+    - docker push "$CI_REGISTRY_IMAGE/base:$CI_COMMIT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE/base:latest"
+  only:
+    - web
+
+build-feature:
+  stage: build
+  image: $CI_REGISTRY_IMAGE/base:latest
+  variables:
+    GITLAB_FORCE_BUILD: '1'
+  script:
+    - pipenv install --dev
+    - pipenv run ./autobuilder/build_project.py -b feature
+  only:
+    - /^feature/.*$/
+    - /^release/.*$/
+  except:
+    - tags
+    - master
+    - web
+
+build-prod:
+  stage: build
+  image: $CI_REGISTRY_IMAGE/base:latest
+  variables:
+    GITLAB_FORCE_BUILD: '1'
+  script:
+    - pipenv install --dev
+    - pipenv run ./autobuilder/build_project.py -b prod
+  only:
+    - master
+  except:
+    - tags
+    - web
+
+publish-tag:
+  stage: build
+  image: $CI_REGISTRY_IMAGE/base:latest
+  variables:
+    GITLAB_FORCE_BUILD: '1'
+  script:
+    - pipenv install --dev
+    - pipenv run ./autobuilder/build_project.py -b tag
+  only:
+    - tags
+  except:
+    - web
+
+tag-prod:
+  stage: tag
+  image: $CI_REGISTRY_IMAGE/base:latest
+  script:
+    - pipenv install --dev
+    - pipenv run ./autobump/bump_version.py --no-git-flow
+  only:
+    - master
+  except:
+    - tags
+    - web
