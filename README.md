@@ -1,7 +1,8 @@
 # utils
 [![Build Status](https://travis-ci.com/ScarfaceIII/utils.svg?branch=master)](https://travis-ci.com/ScarfaceIII/utils)
 
-Small library with a utility to auto-version code and a few classes to interact with Azure services.
+Small library with a utility to auto-version code, a utility to build Docker images of monorepo projects and a few 
+classes to interact with Azure services.
 
 * To use this library, add this to your Pipfile:
 ```bash

@@ -1,21 +1,25 @@
 #!/usr/bin/env python
 import configparser
 import logging
+import gitlab
 import os
 import re
 import sys
 import subprocess
+
 from argparse import ArgumentParser
 from bumpversion.cli import main as bumpversion_main
-
-import gitlab
+from github import Github
 
 CHANGELOG_FILENAME = 'CHANGELOG.md'
 CHANGELOG_TAG_ENTRY = '## [{tag}]({url}/-/tags/{tag})\n'
 CHANGELOG_CHANGE_ENTRY_TEMPLATE = '- {change}\n'
 GITLAB_MERGE_REQUEST_COMMIT_REGEX = r'(\S*\/\S*!)(\d+)'
+GITHUB_PULL_REQUEST_COMMIT_REGEX = r'(^Merge pull request #|[\w*\s*\(]#)(\d+)'
 COMMIT_MESSAGE = "Auto-bumping project to version {} (skip-build)"
 DEFAULT_CONFIG_FILE = '.bumpversion.cfg'
+TRAVIS_EMAIL = "build@travis-ci.com"
+TRAVIS_NAME = "Travis CI"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -83,6 +87,23 @@ def get_gitlab_merge_request():
         return None
     else:
         return get_merge_request_from_id(merge_request_id)
+
+
+def get_github_labels():
+    try:
+        pr_number = int(extract_merge_request_id_from_commit(
+            os.getenv("TRAVIS_COMMIT_MESSAGE"),
+            GITHUB_PULL_REQUEST_COMMIT_REGEX,
+        ))
+    except MergeRequestIDNotFoundException as mridnf:
+        print(mridnf)
+        return []
+    else:
+        g = Github(os.getenv("GITHUBKEY"))
+        repo = g.get_repo(os.getenv("TRAVIS_REPO_SLUG"))
+
+        issue = repo.get_issue(pr_number)
+        return [label.name for label in issue.get_labels()]
 
 
 def bump(project_type: str = None, config_file: str = None, labels: list = None) -> str:
@@ -207,27 +228,41 @@ def update_changelog(merge_request, tag):
 
 
 def main(project_type, config_file, no_git_flow=False):
-    master_branch = 'master'
+    branch_name = os.getenv('TRAVIS_BRANCH') or 'master'
+    print('Using branch ', branch_name)
+    is_travis_ci = os.getenv('TRAVIS') == 'true'
+    push_commands_list = ["push", "origin", branch_name]
 
-    env_list = [
-        "CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "CI_PROJECT_NAME",
-        "NPA_GITLAB_TOKEN", "NPA_EMAIL",
-    ]
-    [verify_env_var_presence(e) for e in env_list]
+    if is_travis_ci:
+        env_list = ["GH_TOKEN", "TRAVIS_REPO_SLUG", "TRAVIS_COMMIT_MESSAGE"]
+        [verify_env_var_presence(e) for e in env_list]
 
-    merge_request = get_gitlab_merge_request()
+        email = TRAVIS_EMAIL
+        name = TRAVIS_EMAIL
 
-    repository_url = os.environ["CI_REPOSITORY_URL"]
-    name = os.environ["CI_PROJECT_NAME"]
-    password = os.environ["NPA_GITLAB_TOKEN"]
-    email = os.environ["NPA_EMAIL"]
-    push_url = re.sub(r'([a-z]+://)[^@]*(@.*)', r'\g<1>{}:{}\g<2>'.format('oauth2', password), repository_url)
+        labels = get_github_labels()
+        push_url = "https://{}@github.com/{}.git".format(os.getenv('GH_TOKEN'), os.getenv('TRAVIS_REPO_SLUG'))
+    else:
+        env_list = [
+            "CI_REPOSITORY_URL", "CI_PROJECT_ID", "CI_PROJECT_URL", "CI_PROJECT_PATH", "CI_PROJECT_NAME",
+            "NPA_GITLAB_TOKEN", "NPA_EMAIL",
+        ]
+        [verify_env_var_presence(e) for e in env_list]
+
+        merge_request = get_gitlab_merge_request()
+        labels = merge_request.labels if merge_request else None
+
+        repository_url = os.environ["CI_REPOSITORY_URL"]
+        name = os.environ["CI_PROJECT_NAME"]
+        password = os.environ["NPA_GITLAB_TOKEN"]
+        email = os.environ["NPA_EMAIL"]
+        push_url = re.sub(r'([a-z]+://)[^@]*(@.*)', r'\g<1>{}:{}\g<2>'.format('oauth2', password), repository_url)
 
     # update repo URL
     logger.info("Switching push URL to authenticated one")
     git("remote", "set-url", "--push", "origin", push_url)
 
-    git('checkout', master_branch)
+    git('checkout', branch_name)
     git('pull')
 
     logger.info("Configuring Git email and username")
@@ -238,10 +273,11 @@ def main(project_type, config_file, no_git_flow=False):
     tag = bump(
         project_type=project_type,
         config_file=config_file,
-        labels=merge_request.labels if merge_request else None
+        labels=labels
     )
-
-    update_changelog(merge_request, tag)
+    # TODO need to implement changelog functionality for github
+    if not is_travis_ci:
+        update_changelog(merge_request, tag)
 
     logger.info("Committing files changed by version bumping")
     # log files changed by version bumping
@@ -249,17 +285,17 @@ def main(project_type, config_file, no_git_flow=False):
     # commit files changed by version bumping
     logger.info(git("commit", "-a", "-m", COMMIT_MESSAGE.format(tag)))
     # push commit with the option to skip the CI or it will trigger same job that called this script!
-    logger.info(git("push", "origin", master_branch, "-o", "ci.skip"))
+    logger.info(git("push", "origin", branch_name, "-o", "ci.skip"))
 
     tag_repo(tag)
     # push tags
-    logger.info(git("push", "origin", master_branch, "--tags"))
+    logger.info(git("push", "origin", branch_name, "--tags"))
 
     if not no_git_flow:
         # checkout develop branch
         logger.info(git("checkout", "develop"))
         # have to merge back the changes committed to master into develop branch
-        logger.info(git("merge", master_branch))
+        logger.info(git("merge", branch_name))
         # push commit with the option to skip the CI or it will trigger same job that called this script!
         logger.info(git("push", "origin", "develop", "-o", "ci.skip"))
 

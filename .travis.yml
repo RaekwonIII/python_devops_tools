@@ -24,7 +24,7 @@ jobs:
     on:
       condition: "-z $(git tag --points-at $TRAVIS_COMMIT)"
     script:
-    - pipenv run $TRAVIS_BUILD_DIR/scarface_utils/old_tools/bump_version.py
+    - pipenv run $TRAVIS_BUILD_DIR/scarface_utils/autobump/bump_version.py --no-git-flow
   - stage: publish
 #    on:
 #      tags: true

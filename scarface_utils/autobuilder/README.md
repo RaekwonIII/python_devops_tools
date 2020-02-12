@@ -2,9 +2,6 @@
 
 #### Utility to manage incremental builds of monorepo projects
 
-[![pipeline status](https://gitlab.idruide.tech/smm/autobuilder/badges/master/pipeline.svg)](https://gitlab.idruide.tech/smm/autobuilder/commits/master)
-[![coverage report](https://gitlab.idruide.tech/smm/autobuilder/badges/master/coverage.svg)](https://gitlab.idruide.tech/smm/autobuilder/commits/master)
-
 This utility will scan the repository it's being used on for Dockerfile(s), identifying packages, then it will 
 find differences introduced in the latest commit, find impacts on the packages (including indirect ones, through 
 dependencies) and decide which packages  need to be built.
